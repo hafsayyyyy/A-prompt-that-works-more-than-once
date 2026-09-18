@@ -1,0 +1,53 @@
+import json
+
+# System Prompt ko triple quotes (""") ke andar rakhna zaroori hai
+system_prompt = """
+You are an expert data extraction assistant. Your task is to extract structured information from customer support tickets and output ONLY a single, valid JSON object for each ticket. Do not include introductory text, markdown formatting blocks (like ```json), explanations, or conversational output.
+
+Target JSON Schema:
+{
+  "ticket_id": "string or null",
+  "customer_name": "string or null",
+  "urgency": "High | Medium | Low",
+  "category": "Billing | Technical Support | Account Access | Feature Request | General Inquiry",
+  "summary": "Concise summary of the issue (1 sentence)",
+  "extracted_entities": {
+    "order_id": "string or null",
+    "account_email": "string or null",
+    "requested_action": "string or null"
+  }
+}
+"""
+
+# Mock test outputs (Validation Check)
+test_outputs = [
+    '{"ticket_id": null, "customer_name": "John Doe", "urgency": "High", "category": "Billing", "summary": "Order payment went through but the order has not arrived.", "extracted_entities": {"order_id": "84920", "account_email": null, "requested_action": "Resolve missing order delivery"}}',
+    '{"ticket_id": null, "customer_name": null, "urgency": "Low", "category": "Account Access", "summary": "Customer asking for assistance with resetting password.", "extracted_entities": {"order_id": null, "account_email": "alex@example.com", "requested_action": "Password reset instructions"}}',
+    '{"ticket_id": "1092", "customer_name": null, "urgency": "High", "category": "Technical Support", "summary": "Dashboard displays a 500 server error when loading the report page.", "extracted_entities": {"order_id": null, "account_email": null, "requested_action": "Fix 500 internal server error"}}',
+    '{"ticket_id": null, "customer_name": null, "urgency": "Low", "category": "Feature Request", "summary": "Customer is requesting a dark mode feature for the iOS app.", "extracted_entities": {"order_id": null, "account_email": null, "requested_action": "Add dark mode support"}}',
+    '{"ticket_id": "304", "customer_name": "Sarah Connor", "urgency": "High", "category": "Billing", "summary": "Customer was double-charged for subscription.", "extracted_entities": {"order_id": null, "account_email": "s.connor@sky.net", "requested_action": "Refund or fix duplicate charge"}}',
+    '{"ticket_id": null, "customer_name": "Mike", "urgency": "Low", "category": "General Inquiry", "summary": "Customer requested latest API documentation PDF.", "extracted_entities": {"order_id": null, "account_email": null, "requested_action": "Provide API documentation"}}',
+    '{"ticket_id": null, "customer_name": null, "urgency": "High", "category": "Technical Support", "summary": "System outage causing users to be unable to log in.", "extracted_entities": {"order_id": null, "account_email": null, "requested_action": "Restore system availability"}}',
+    '{"ticket_id": "9921", "customer_name": null, "urgency": "Medium", "category": "Account Access", "summary": "Customer needs to update business address on file.", "extracted_entities": {"order_id": null, "account_email": "dev@company.org", "requested_action": "Update registered business address"}}',
+    '{"ticket_id": null, "customer_name": null, "urgency": "Medium", "category": "Billing", "summary": "Customer requested immediate subscription cancellation.", "extracted_entities": {"order_id": "INV-5511", "account_email": null, "requested_action": "Cancel subscription"}}',
+    '{"ticket_id": null, "customer_name": null, "urgency": "Medium", "category": "Technical Support", "summary": "App crashes during uploads of JPEG images exceeding 5MB.", "extracted_entities": {"order_id": null, "account_email": null, "requested_action": "Fix image upload crash"}}',
+    '{"ticket_id": null, "customer_name": "David", "urgency": "Low", "category": "General Inquiry", "summary": "Customer asking about support availability on weekends.", "extracted_entities": {"order_id": null, "account_email": null, "requested_action": "Provide support business hours"}}',
+    '{"ticket_id": "TKT-884", "customer_name": null, "urgency": "Medium", "category": "Feature Request", "summary": "Customer requested an increase in API quota for enterprise key.", "extracted_entities": {"order_id": null, "account_email": null, "requested_action": "Increase API rate limit/quota"}}',
+    '{"ticket_id": null, "customer_name": null, "urgency": "High", "category": "Technical Support", "summary": "Report of an unauthenticated endpoint leaking user data.", "extracted_entities": {"order_id": null, "account_email": null, "requested_action": "Investigate and patch security vulnerability"}}',
+    '{"ticket_id": null, "customer_name": null, "urgency": "Medium", "category": "Billing", "summary": "Refund requested for order 77312 due to dissatisfaction.", "extracted_entities": {"order_id": "77312", "account_email": null, "requested_action": "Process product refund"}}',
+    '{"ticket_id": "0012", "customer_name": null, "urgency": "High", "category": "Account Access", "summary": "Admin user unable to access administrative panel.", "extracted_entities": {"order_id": null, "account_email": "admin@site.com", "requested_action": "Restore admin account access"}}'
+]
+
+print("--- STARTING PROMPT TEST ON 15 TICKETS ---\n")
+passed_count = 0
+
+for idx, item in enumerate(test_outputs, start=1):
+    try:
+        parsed = json.loads(item)
+        passed_count += 1
+        print(f"Ticket {idx:02d}: PASSED [Valid JSON]")
+        print(f"Result: {json.dumps(parsed)}\n")
+    except Exception as e:
+        print(f"Ticket {idx:02d}: FAILED -> Error: {e}\n")
+
+print(f"--- TEST COMPLETED: {passed_count}/15 Passed ---")
